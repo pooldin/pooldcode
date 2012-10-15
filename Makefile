@@ -5,7 +5,8 @@
 
 
 clean:
-	@find . -name "*.py[co]" -exec rm -rf {} \;
+	find . -name "*.py[co]" -exec rm -rf {} \;
+	rm -rf build dist
 
 deps:
 	@python setup.py develop
