@@ -1,3 +1,4 @@
+import mimetypes
 from boto.s3.key import Key
 from boto.s3.prefix import Prefix
 from flask import Blueprint
@@ -50,7 +51,7 @@ def render_resource(key):
                      as_attachment=True)
 
 
-@plan.route('/')
+@plan.route('/', methods=['GET'])
 @requires_auth
 def bucket():
     return render_key(raise_404=False)
@@ -63,3 +64,39 @@ def key(key):
         key = '/%s/' % key.strip('/')
         return render_key(key=key)
     return render_resource(key)
+
+
+@plan.route('/', methods=['POST'])
+def submit():
+    if len(request.files) < 1:
+        return 'OK'
+
+    name = request.form.get('name')
+
+    if not name:
+        abort(405)
+
+    root = '%s/' % name
+
+    for key in request.files:
+        file = request.files[key]
+        key = '%s%s' % (root, file.filename)
+        key = Key(bucket=app.bucket, name=key)
+        size = file.content_length
+        headers = None
+
+        (mimetype, encoding) = mimetypes.guess_type(file.filename)
+
+        if encoding == 'gzip':
+            mimetype = 'application/x-gzip'
+
+        if mimetype:
+            headers = {
+                'Content-Type': mimetype
+            }
+
+        key.set_contents_from_file(file.stream, size=size, headers=headers)
+        file.close()
+        key.close()
+
+    return 'OK'
