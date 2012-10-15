@@ -1,6 +1,7 @@
 from boto.s3.key import Key
 from boto.s3.prefix import Prefix
-from flask import abort, Blueprint, redirect, render_template, request
+from flask import Blueprint
+from flask import abort, render_template, request, send_file
 from flask import current_app as app
 from pooldcode.auth import requires_auth
 
@@ -41,11 +42,12 @@ def render_resource(key):
         abort(404)
 
     name = key.name.strip('/').split('/')[-1]
-    disp = 'attachment; filename="%s"' % name
-
-    return redirect(key.generate_url(30, response_headers={
-        'Content-Disposition': disp
-    }))
+    key.open()
+    key.name = None
+    return send_file(key,
+                     mimetype=key.content_type,
+                     attachment_filename=name,
+                     as_attachment=True)
 
 
 @plan.route('/')
