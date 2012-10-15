@@ -25,10 +25,10 @@ def get_list(key=None):
     return prefixes + keys
 
 
-def render_key(key=None):
+def render_key(key=None, raise_404=True):
     items = get_list(key=key)
 
-    if len(items) < 1:
+    if raise_404 and len(items) < 1:
         abort(404)
 
     return render_template('index.html', key=key, items=items)
@@ -51,7 +51,7 @@ def render_resource(key):
 @plan.route('/')
 @requires_auth
 def bucket():
-    return render_key()
+    return render_key(raise_404=False)
 
 
 @plan.route('/<path:key>')
