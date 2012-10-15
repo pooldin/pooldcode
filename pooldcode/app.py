@@ -2,7 +2,7 @@ import os
 import boto
 from boto.s3.bucket import Bucket
 from flask import Flask
-from pooldcode import index
+from pooldcode import index, pypi
 
 
 class App(Flask):
@@ -13,7 +13,7 @@ class App(Flask):
 
     def configure(self):
         self.url_map.strict_slashes = False
-        settings = os.environ.get('APPCODE_CONFIG')
+        settings = self.get_env('SETTINGS')
         settings = settings or 'pooldcode.settings.dev'
         self.config.from_object('pooldcode.settings.base')
         self.config.from_object(settings)
@@ -22,12 +22,17 @@ class App(Flask):
         self.configure_s3()
         self.configure_blueprints()
 
+    def get_env(self, key):
+        if key:
+            envvar = 'POOLDCODE_%s' % key
+            if envvar in os.environ and os.environ[envvar]:
+                return os.environ[envvar]
+
     def from_env(self, *keys):
         for key in keys:
-            if key:
-                envvar = 'CODE_%s' % key
-                if envvar in os.environ and os.environ[envvar]:
-                    self.config[key] = os.environ[envvar]
+            value = self.get_env(key)
+            if value is not None:
+                self.config[key] = value
 
     def configure_s3(self):
         self.s3 = boto.connect_s3()
@@ -37,6 +42,7 @@ class App(Flask):
 
     def configure_blueprints(self):
         self.register_blueprint(index.plan)
+        self.register_blueprint(pypi.plan, url_prefix='/pypi')
 
     def teardown_s3(self, response):
         self.s3.close()

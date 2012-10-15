@@ -1,0 +1,17 @@
+{% set key = key or '/' %}
+{% set parent = key.strip('/').split('/')[:-1]|join('/') %}
+{% if parent %}{% set parent = '/%s/'|format(parent) %}
+{% elif key and key != '/' %}{% set parent = '/' %}
+{% endif %}
+<h1>Index of {{ key }}</h1>
+{% if items %}
+<ul>
+  {% for item in items %}
+  {% if item.name.endswith('/') %}
+  <li><a href="{{ url_for('pypi.key', key=item.name) }}">{{ item.name.split('/')[-2] }}/</a></li>
+  {% else %}
+  <li><a rel='download' href="{{ url_for('pypi.key', key=item.name) }}">{{ item.name.split('/')[-1] }}</a></li>
+  {% endif %}
+  {% endfor %}
+</ul>
+{% endif %}
