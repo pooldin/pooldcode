@@ -27,7 +27,7 @@ meta = [
 ]
 
 setup(name='pooldcode',
-      version='0.1',
+      version='0.1.0',
       description='The poold.in private python package index',
       long_description=__doc__,
       keywords='website',
