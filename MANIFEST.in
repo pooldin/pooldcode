@@ -1,0 +1,2 @@
+recursive-include pooldcode/static *
+recursive-include pooldcode/templates *

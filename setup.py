@@ -27,7 +27,7 @@ meta = [
 ]
 
 setup(name='pooldcode',
-      version='0.1dev',
+      version='0.1',
       description='The poold.in private python package index',
       long_description=__doc__,
       keywords='website',
@@ -37,7 +37,7 @@ setup(name='pooldcode',
       license='PRIVATE',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
-      zip_safe=True,
+      zip_safe=False,
       extras_require=dict(),
       install_requires=required,
       entry_points=dict(),
