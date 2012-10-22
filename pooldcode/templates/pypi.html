@@ -8,9 +8,9 @@
 <ul>
   {% for item in items %}
   {% if item.name.endswith('/') %}
-  <li><a href="{{ url_for('pypi.key', key=item.name) }}">{{ item.name.split('/')[-2] }}/</a></li>
+  <li><a href="{{ item.name.split('/')[-2] }}">{{ item.name.split('/')[-2] }}/</a></li>
   {% else %}
-  <li><a rel='download' href="{{ url_for('pypi.key', key=item.name) }}">{{ item.name.split('/')[-1] }}</a></li>
+  <li><a rel='download' href="{{ item.name.split('/')[-1] }}">{{ item.name.split('/')[-1] }}</a></li>
   {% endif %}
   {% endfor %}
 </ul>
