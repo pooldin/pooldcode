@@ -1,4 +1,6 @@
+import time
 import mimetypes
+from zlib import adler32
 from boto.s3.key import Key
 from boto.s3.prefix import Prefix
 from flask import Blueprint
@@ -45,10 +47,23 @@ def render_resource(key):
     name = key.name.strip('/').split('/')[-1]
     key.open()
     key.name = None
-    return send_file(key,
+    resp = send_file(key,
                      mimetype=key.content_type,
                      attachment_filename=name,
                      as_attachment=True)
+
+    adname = name.encode('utf8') if isinstance(name, unicode) else name
+    advalue = adler32(adname) & 0xffffffff
+
+    resp.content_length = key.size
+
+    resp.last_modified = time.strptime(key.last_modified,
+                                       '%a, %d %b %Y %H:%M:%S %Z')
+
+    resp.set_etag('flask-%s-%s-%s' % (key.last_modified,
+                                      key.size,
+                                      advalue))
+    return resp
 
 
 @plan.route('/', methods=['GET'])
@@ -57,13 +72,22 @@ def bucket():
     return render_key(raise_404=False)
 
 
-@plan.route('/<path:key>')
+@plan.route('/<path:key>', methods=['GET'])
 @requires_auth
 def key(key):
     if not key or request.path.endswith('/'):
         key = '/%s/' % key.strip('/')
         return render_key(key=key)
     return render_resource(key)
+
+
+@plan.route('/<path:key>', methods=['HEAD'])
+@requires_auth
+def key_head(key):
+    key = Key(bucket=app.bucket, name=key)
+
+    if not key.exists():
+        abort(404)
 
 
 @plan.route('/', methods=['POST'])
